@@ -36,6 +36,9 @@ env.train_environment_and_evaluate()
 The `train_environment_and_evaluate` method must always be called after instantiating to train the underlying XGBoost models with the passed parameters and dataset. Below we show comparison between an agent interacting with a trained environment versus untrained.
 
 ## Training environment
+Here, we present a comparison of the performance of a Double DQN with PER agent running in two different instances of the environment - one with tuned parameters of the XGBoost models and one with random ones. Both are run over the same time series data. Clearly, the better fitted the environment is, the better the performance and cummulative reward of the agent. 
+
+![Agent performance](img/Env-plot.PNG?raw=true "Agent performance")
 
 ## Parameters
 The TSEnvironment is highly parameterizable. Below, we describe the main parameters of the API.
