@@ -1,3 +1,4 @@
+from typing import Dict
 import torch
 import pandas as pd
 import numpy as np
@@ -8,21 +9,22 @@ from gym import Env
 from spaces.evenly_spaced import EvenlySpaced
 from sklearn.metrics import mean_squared_error
 
-class Environment(Env):
+class TSEnvironment(Env):
 
     def __init__(self, 
-                dataset,
-                target, 
-                labor_feature,
-                number_actions,
-                start_action,
-                stop_action,
-                target_model_params,
-                labor_model_params,
-                cost_labor,
-                window):
+                file_path: str, 
+                start_test_period: str,
+                target: str, 
+                labor_feature: str,
+                number_actions: int,
+                start_action: int,
+                stop_action: int,
+                target_model_params: Dict[str, float],
+                labor_model_params: Dict[str, float],
+                cost_feature: float,
+                window: int):
 
-        self.dataset = dataset
+        self.dataset = Dataset(file_path, start_test_period)
         self.window = window
         self.action_space = EvenlySpaced(start_action, stop_action, number_actions)
         self.t = window #timestep of the series
@@ -40,7 +42,7 @@ class Environment(Env):
         else:
             self.model_hours = XGBoostModel(n_estimators=100, learning_rate=0.1)
 
-        self.cost_hour = cost_labor
+        self.cost_feature = cost_feature
 
         self.device = torch.device("cuda"  if torch.cuda.is_available() else "cpu")
 
@@ -274,9 +276,9 @@ class Environment(Env):
         hours = state.loc[self.t][self.labor_feature]
 
         forecast_profit = forecast_action - \
-            state.loc[self.t][self.labor_feature]*self.cost_hour
+            state.loc[self.t][self.labor_feature]*self.cost_feature
 
-        actual_profit = forecast_no_action - forecast_labor_no_action*self.cost_hour
+        actual_profit = forecast_no_action - forecast_labor_no_action*self.cost_feature
 
         #(forecasts with action-labour with action) - (forecast with 0 - labour with 0)
         reward = forecast_profit - actual_profit
@@ -307,8 +309,8 @@ if __name__ == '__main__':
     target_params = get_json_params(args.target_params)
     labor_params = get_json_params(args.labor_params)
 
-    dataset = Dataset(args.data_path, args.start_test_period)
-    env = Environment(dataset,
+    env = TSEnvironment(args.data_path,
+                        args.start_test_period,
                         args.target, 
                         args.labor_feature,
                         number_actions=int(args.number_actions),
@@ -316,7 +318,7 @@ if __name__ == '__main__':
                         stop_action=float(args.stop_action),
                         target_model_params=target_params,
                         labor_model_params=labor_params,
-                        cost_labor=args.cost_labor,
+                        cost_feature=args.cost_feature,
                         window=args.window_size)
 
     env.train_environment_and_evaluate()

@@ -16,7 +16,7 @@ def parse_command_args():
     parser.add_argument("-tp", "--test_period", dest="start_test_period", required=True)
     parser.add_argument("-pt", "--target_params", dest="target_params")
     parser.add_argument("-pl", "--labor_params", dest="labor_params")
-    parser.add_argument("-c", "--cost_labor", dest="cost_labor", default=10)
+    parser.add_argument("-c", "--cost_feature", dest="cost_feature", default=10)
 
     args = parser.parse_args()
 

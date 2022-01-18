@@ -1,14 +1,13 @@
 from agent_factory import AgentFactory
-from dataset import Dataset
-from environment import Environment
+from environment import TSEnvironment
 from utils import parse_command_args, get_json_params
 
 def run_process(args):
     target_params = get_json_params(args.target_params)
     labor_params = get_json_params(args.labor_params)
 
-    dataset = Dataset(args.data_path, args.start_test_period)
-    env = Environment(dataset,
+    env = TSEnvironment(args.data_path,
+                        args.start_test_period,
                         args.target, 
                         args.labor_feature,
                         number_actions=int(args.number_actions),
@@ -16,7 +15,7 @@ def run_process(args):
                         stop_action=float(args.stop_action),
                         target_model_params=target_params,
                         labor_model_params=labor_params,
-                        cost_labor=int(args.cost_labor),
+                        cost_feature=int(args.cost_feature),
                         window=int(args.window_size)
                         )
     env.train_environment_and_evaluate()
