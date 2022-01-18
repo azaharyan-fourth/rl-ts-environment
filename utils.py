@@ -24,7 +24,7 @@ def parse_command_args():
 
 def get_json_params(file_name):
     if file_name != "":
-        f = open(file_name)
-        params = json.load(f)
+        file = open(file_name)
+        params = json.load(file, encoding='UTF-8')
 
         return params

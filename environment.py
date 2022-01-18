@@ -11,10 +11,10 @@ from sklearn.metrics import mean_squared_error
 
 class TSEnvironment(Env):
 
-    def __init__(self, 
-                file_path: str, 
+    def __init__(self,
+                file_path: str,
                 start_test_period: str,
-                target: str, 
+                target: str,
                 labor_feature: str,
                 number_actions: int,
                 start_action: int,
@@ -47,17 +47,17 @@ class TSEnvironment(Env):
         self.device = torch.device("cuda"  if torch.cuda.is_available() else "cpu")
 
     def get_state(self, index=None, is_test=False):
-        """ 
+        """
             Get the current state of the environment
 
             Args:
             index (int):
-            is_test (bool): 
+            is_test (bool):
         """
 
         if index is None:
             index = self.t
-        
+
         state = None
 
         if is_test:
@@ -68,7 +68,7 @@ class TSEnvironment(Env):
         return state
 
     def step(self, action, is_test=False):
-        """ 
+        """
             Make step in the environment and return the next state and the reward
             return (nex_state, reward)
 
@@ -78,7 +78,7 @@ class TSEnvironment(Env):
 
             Returns:
             next_state
-            reward (float): 
+            reward (float):
             done (bool): True when it is the last element of the dataset
                         (i.e. the series)
         """
@@ -98,15 +98,15 @@ class TSEnvironment(Env):
 
     def reset(self, index=None):
         '''
-        Resets the environment, i.e. moves the counter t to the 
+        Resets the environment, i.e. moves the counter t to the
         index with offset of size `window`
 
         Args:
-        index (int): 
+        index (int):
         '''
         if index != None:
             self.t = index + self.window
-        else:   
+        else:
             self.t = self.window
 
     def iter_dataset(self, train: bool = True):
@@ -127,7 +127,7 @@ class TSEnvironment(Env):
             
     def transform_data_for_nn(self, df) -> torch.Tensor:
         '''
-        Drop unnecessary columns for the NN and transform the DataFrame to Tensor 
+        Drop unnecessary columns for the NN and transform the DataFrame to Tensor
 
             Args:
                 df (pd.DataFrame): DataFrame of the data
@@ -152,15 +152,15 @@ class TSEnvironment(Env):
                             consists of the current day + the context window
 
             Returns:
-                prediction(float): 
+                prediction(float):
         '''
         test = self.model_sales.create_features(current_state)
         test.drop(self.target, axis=1, inplace=True)
         prediction = self.model_sales.test(test.tail(1))[0]
         return prediction
 
-    def get_predicted_labor(self, 
-                            current_state: pd.DataFrame, 
+    def get_predicted_labor(self,
+                            current_state: pd.DataFrame,
                             forecast_sales=None) -> float:
         '''
             Get forecast of the feature for the current state
@@ -183,7 +183,7 @@ class TSEnvironment(Env):
         return np.float64(round(prediction,1))
 
     def train_environment_and_evaluate(self):
-        """ 
+        """
             Train helper forecasting models of the environment
         """
 
@@ -196,7 +196,7 @@ class TSEnvironment(Env):
         X_train_hours, y_train_hours = self.model_sales.create_features(self.dataset.dataset_train, label=self.labor_feature)
         X_test_hours, y_test_hours = self.model_sales.create_features(self.dataset.dataset_val, label=self.labor_feature)
 
-        self.model_hours.train(X_train_hours, y_train_hours, 
+        self.model_hours.train(X_train_hours, y_train_hours,
                             eval_set=[(X_train_hours, y_train_hours), (X_test_hours, y_test_hours)])
 
         # remove 1 for the date column
@@ -212,18 +212,18 @@ class TSEnvironment(Env):
                                                     metric='rmse')
         rmse_labor_test = self.predict_and_evaluate(X_test_hours,
                                                     y_test_hours,
-                                                    is_target=False, 
+                                                    is_target=False,
                                                     metric='rmse')
 
-        print(f"Target train WAPE: {wape_train}")                    
+        print(f"Target train WAPE: {wape_train}")      
         print(f"Target test WAPE: {wape_test}")
         print(f"Labor train RMSE: {rmse_labor_train}")
         print(f"Labor test RMSE: {rmse_labor_test}")
-        
 
-    def predict_and_evaluate(self, 
+
+    def predict_and_evaluate(self,
                             X: pd.DataFrame,
-                            y: pd.Series, 
+                            y: pd.Series,
                             is_target=True, metric='wape'):
         '''
         Evaluate the performance of the trained XGBoost models
@@ -235,7 +235,7 @@ class TSEnvironment(Env):
         metric (str): the evaluation metric to be used
 
         Returns:
-        score (float): the score according to the specified metric 
+        score (float): the score according to the specified metric
         '''
         if is_target:
             pred = self.model_sales.test(X)
@@ -248,7 +248,6 @@ class TSEnvironment(Env):
             score = mean_squared_error(pred, y, squared=False)
         return score
 
-    
 
     def _apply_action_get_reward(self, action, state):
         """ Apply action and pass the resulted reward
@@ -305,13 +304,13 @@ class TSEnvironment(Env):
 
 if __name__ == '__main__':
     args = parse_command_args()
-    
+
     target_params = get_json_params(args.target_params)
     labor_params = get_json_params(args.labor_params)
 
     env = TSEnvironment(args.data_path,
                         args.start_test_period,
-                        args.target, 
+                        args.target,
                         args.labor_feature,
                         number_actions=int(args.number_actions),
                         start_action=float(args.start_action),

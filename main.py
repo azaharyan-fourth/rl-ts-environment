@@ -1,4 +1,4 @@
-from agent_factory import AgentFactory
+#from agent_factory import AgentFactory
 from environment import TSEnvironment
 from utils import parse_command_args, get_json_params
 
@@ -8,7 +8,7 @@ def run_process(args):
 
     env = TSEnvironment(args.data_path,
                         args.start_test_period,
-                        args.target, 
+                        args.target,
                         args.labor_feature,
                         number_actions=int(args.number_actions),
                         start_action=float(args.start_action),
@@ -20,10 +20,11 @@ def run_process(args):
                         )
     env.train_environment_and_evaluate()
 
-    agent = AgentFactory.get_agent(env, args.model)
+    #agent = AgentFactory.get_agent(env, args.model)
 
-    agent.train(151)
+    #agent.train(151)
 
 if __name__ == '__main__':
     args = parse_command_args()
     run_process(args)
+    
